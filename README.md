@@ -1,5 +1,4 @@
-### 普通多模块项目（非组件化、插件化项目）
-
+### 普通多模块项目（非组件化、插件化项目）Dagger2依赖方式选择
 使用SubComponent组织
 参考[Google官方](https://developer.android.google.cn/training/dependency-injection/dagger-multi-module)
 
@@ -33,7 +32,7 @@ open class BaseApplication : Application() {
 }
 ```
 
-
+app模块
 
 注意AppComponent不是放在base模块
 
@@ -51,7 +50,11 @@ interface AppComponent {
 ```kotlin
 @Module
 class AppModule {
-
+    @IntoSet
+    @Provides
+    fun provideString(): String {
+        return "app"
+    }
 }
 ```
 
@@ -70,6 +73,11 @@ user模块
 ```kotlin
 @Module
 class UserModule {
+    @IntoSet
+    @Provides
+    fun provideString(): String {
+        return "user"
+    }
 }
 ```
 
@@ -89,6 +97,11 @@ news模块
 ```kotlin
 @Module
 class NewsModule {
+    @IntoSet
+    @Provides
+    fun provideString(): String {
+        return "news"
+    }
 }
 ```
 
@@ -108,7 +121,11 @@ interface NewsComponent {
 ```kotlin
 @Module(subcomponents = [NewsComponent::class, UserComponent::class])
 class AppModule {
-
+    @IntoSet
+    @Provides
+    fun provideString(): String {
+        return "app"
+    }
 }
 ```
 
@@ -170,8 +187,8 @@ class AppApplication : BaseApplication(), NewsComponentProvider, UserComponentPr
 然后user,news模块中这样获取
 
 ```kotlin
-val userComponent = (applicationContext as UserComponentProvider).provideUserComponent()
-val newsComponent = (applicationContext as NewsComponentProvider).provideNewsComponent()
+val userComponent = (BaseApplication.instance as UserComponentProvider).provideUserComponent()
+val newsComponent = (BaseApplication.instance as NewsComponentProvider).provideNewsComponent()
 ```
 
 通常UserComponent与NewsComponent只要一个实例，上面方法每次都他建一个新实例不合适，可以把它们放到一个全局变量中去
@@ -189,5 +206,32 @@ object UserComponentHolder {
 }
 ```
 
+最后在Activity中这样用
 
+```kotlin
+class NewsActivity : AppCompatActivity() {
 
+    @Inject
+    lateinit var set: Set<String>
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_news)
+        NewsComponentHolder.newsComponent.inject(this)
+        text.text = set.toString()
+    }
+}
+
+class UserActivity : AppCompatActivity() {
+
+    @Inject
+    lateinit var set: Set<String>
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_user)
+        UserComponentHolder.userComponent.inject(this)
+        text.text = set.toString()
+    }
+}
+```
