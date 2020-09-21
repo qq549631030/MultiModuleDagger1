@@ -4,14 +4,7 @@
 
 假设项目模块结构如下图
 
-```mermaid
-graph TB
-app --- news
-app --- user
-news --- base
-user --- base
-
-```
+![](images/image01.jpg)
 
 在普通多模块项目中，app直接依赖news与user模块，可以直接引用其中的类
 
